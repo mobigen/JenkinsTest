@@ -1,0 +1,91 @@
+node {
+    try {
+        stage('Init') {
+            // 설정 branch
+            checkout scm
+        
+            config = readYaml file: 'jenkins/deploy.yaml'
+            deployK8SYaml = "${config.deploy.k8s.yaml}"
+            
+            buildDockerfile = "${config.deploy.build.dockerfile}"
+            buildPath = "${config.deploy.build.path}"
+            
+            registryURL = "${config.registry.url}"
+            registryProject = "${config.registry.project}"
+            registryService = "${config.registry.service}"
+            
+            mattermostURL = "${config.notification.mettermost.url}"
+            mattermostChannel = "${config.notification.mettermost.channel}"
+            mattermostUsername = "${config.notification.mettermost.usrname}"
+            mattermostIcon = "${config.notification.mettermost.icon}"
+                
+            tag = sh (
+                script: "echo `date '+%Y%m%d'`-`git rev-parse --short=7 HEAD`",
+                returnStdout: true
+            ).trim()
+        }
+    
+        stage('Docker build') {
+            echo "-tag name: $tag"
+        
+            docker_image = docker.build(
+                "${registryURL}/${registryProject}/${registryService}",
+                "-f ${buildDockerfile} ${buildPath}"
+            )
+            
+            docker.withRegistry("https://${registryURL}", 'harbor-jenkins') {
+                docker_image.push("${tag}")
+            }
+        }
+        
+        stage('Kubernetes deploy') {
+            env.DEPLOY_NAMESPACE = "${config.deploy.k8s.namespace}"
+            env.CONTAINER_IMAGE = "${registryURL}/${registryProject}/${registryService}:${tag}"
+        
+            echo "-deploy namespace: $env.DEPLOY_NAMESPACE"
+            echo "-container image : $env.CONTAINER_IMAGE"
+        
+            kubernetesDeploy configs: "${deployK8SYaml}",
+                kubeconfigId: 'k8s'
+        }
+        
+        stage('Notificate') {
+            echo 'success............'
+            httpRequest contentType: 'APPLICATION_JSON_UTF8',
+                httpMode: 'POST',
+                requestBody: "{ \
+                    \"channel\": \"${mattermostChannel}\", \
+                    \"username\": \"${mattermostUsername}\", \
+                    \"icon_url\": \"${mattermostIcon}\", \
+                    \"text\": \"success ${env.JOB_NAME} ${env.BUILD_NUMBER} ${env.BUILD_URL}\" \
+                }",
+                responseHandle: 'NONE',
+                url: "${mattermostURL}",
+                wrapAsMultipart: false
+        }
+    } catch (err) {
+        currentBuild.result = 'FAILURE'
+        echo "$err"
+        echo 'failure............'
+        stage('Notificate') {
+            httpRequest contentType: 'APPLICATION_JSON_UTF8',
+                httpMode: 'POST',
+                requestBody: "{ \
+                    \"channel\": \"${mattermostChannel}\", \
+                    \"username\": \"${mattermostUsername}\", \
+                    \"icon_url\": \"${mattermostIcon}\", \
+                    \"text\": \"failure ${env.JOB_NAME} ${env.BUILD_NUMBER} ${env.BUILD_URL}\" \
+                }",
+                responseHandle: 'NONE',
+                url: "${mattermostURL}",
+                wrapAsMultipart: false
+        }
+        throw err
+    } finally {
+        stage('Clean workspace & delete Image') {
+            cleanWs deleteDirs: true,
+                notFailBuild: true
+            sh "docker rmi ${registryURL}/${registryProject}/${registryService}"
+        }
+    }
+}
