@@ -1,12 +1,11 @@
 node {
-    try {
-        echo "--------------------------"
-        echo "${env.DEPLOIY_REPOSITORY}"
-        echo "${env.DEPLOIY_BRANCH}"
-        echo "--------------------------"
-        
+    try {        
         stage('Init') {
             // 설정 branch
+            echo "--------------------------"
+            echo "${env.DEPLOIY_REPOSITORY}"
+            echo "${env.DEPLOIY_BRANCH}"
+            echo "--------------------------"
             checkout scm
         
             config = readYaml file: 'jenkins/deploy.yaml'
