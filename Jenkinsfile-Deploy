@@ -1,5 +1,10 @@
 node {
     try {
+        echo "--------------------------"
+        echo "${env.DEPLOIY_REPOSITORY}"
+        echo "${env.DEPLOIY_BRANCH}"
+        echo "--------------------------"
+        
         stage('Init') {
             // 설정 branch
             checkout scm
