@@ -18,7 +18,7 @@ node {
             registryProject = "${config.registry.project}"
             registryService = "${config.registry.service}"
             
-            mattermost = load "src/mattermost.groovy"
+            mattermost = load "./src/mattermost.groovy"
             mattermostURL = "${config.notification.mettermost.url}"
             mattermostChannel = "${config.notification.mettermost.channel}"
             mattermostUsername = "${config.notification.mettermost.usrname}"
