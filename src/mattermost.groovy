@@ -3,7 +3,7 @@ void testMethod(
     String channel,
     String username,
     String text,
-    String icon='https://www.mattermost.org/wp-content/uploads/2016/04/icon.png',
+    String icon='https://www.mattermost.org/wp-content/uploads/2016/04/icon.png'
   ) {
     httpRequest contentType: 'APPLICATION_JSON_UTF8',
         httpMode: 'POST',
