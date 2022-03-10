@@ -87,7 +87,7 @@ node {
 //                url: "${mattermostURL}",
 //                wrapAsMultipart: false
             def text = "failure ${env.JOB_NAME} ${env.BUILD_NUMBER} ${env.BUILD_URL}"
-            mattermost(mattermostURL, mattermostChannel, mattermostUsername, ${text}, mattermostIcon)
+            mattermost(mattermostURL, mattermostChannel, mattermostUsername, "${text}", mattermostIcon)
         }
         throw err
     } finally {
