@@ -17,3 +17,5 @@ void sendMessage(
         url: "${url}",
         wrapAsMultipart: false
 }
+
+return this
