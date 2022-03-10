@@ -9,7 +9,7 @@ node {
             checkout scm
         
             config = readYaml file: 'jenkins/deploy.yaml'
-            jenkinsHomePath = "${config.general.jenkins.path}"
+            jenkinsHomePath = "${config.submodle.jenkins.path}"
             deployK8SYaml = "${config.deploy.k8s.yaml}"
             
             buildDockerfile = "${config.deploy.build.dockerfile}"
