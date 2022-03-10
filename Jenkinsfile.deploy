@@ -2,10 +2,6 @@ node {
     try {        
         stage('Init') {
             // 설정 branch
-            echo "--------------------------"
-            echo "${env.DEPLOIY_REPOSITORY}"
-            echo "${env.DEPLOIY_BRANCH}"
-            echo "--------------------------"
             checkout scm
         
             config = readYaml file: 'jenkins/deploy.yaml'
@@ -58,43 +54,21 @@ node {
         
         stage('Notificate') {
             echo 'success............'
-            httpRequest contentType: 'APPLICATION_JSON_UTF8',
-                httpMode: 'POST',
-                requestBody: "{ \
-                    \"channel\": \"${mattermostChannel}\", \
-                    \"username\": \"${mattermostUsername}\", \
-                    \"icon_url\": \"${mattermostIcon}\", \
-                    \"text\": \"success ${env.JOB_NAME} ${env.BUILD_NUMBER} ${env.BUILD_URL}\" \
-                }",
-                responseHandle: 'NONE',
-                url: "${mattermostURL}",
-                wrapAsMultipart: false
+            def text = "success ${env.JOB_NAME} ${env.BUILD_NUMBER} ${env.BUILD_URL}"
+            mattermost.sendMessage(mattermostURL, mattermostChannel, mattermostUsername, "${text}", mattermostIcon)
         }
     } catch (err) {
-        currentBuild.result = 'FAILURE'
-        echo "$err"
         echo 'failure............'
         stage('Notificate') {
-//            httpRequest contentType: 'APPLICATION_JSON_UTF8',
-//                httpMode: 'POST',
-//                requestBody: "{ \
-//                    \"channel\": \"${mattermostChannel}\", \
-//                    \"username\": \"${mattermostUsername}\", \
-//                    \"icon_url\": \"${mattermostIcon}\", \
-//                    \"text\": \"failure ${env.JOB_NAME} ${env.BUILD_NUMBER} ${env.BUILD_URL}\" \
-//                }",
-//                responseHandle: 'NONE',
-//                url: "${mattermostURL}",
-//                wrapAsMultipart: false
             def text = "failure ${env.JOB_NAME} ${env.BUILD_NUMBER} ${env.BUILD_URL}"
             mattermost.sendMessage(mattermostURL, mattermostChannel, mattermostUsername, "${text}", mattermostIcon)
         }
         throw err
     } finally {
         stage('Clean workspace & delete Image') {
-//            cleanWs deleteDirs: true,
-//                notFailBuild: true
-//            sh "docker rmi ${registryURL}/${registryProject}/${registryService}"
+            cleanWs deleteDirs: true,
+                notFailBuild: true
+            sh "docker rmi ${registryURL}/${registryProject}/${registryService}"
         }
     }
 }
