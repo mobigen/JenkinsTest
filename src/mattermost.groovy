@@ -1,4 +1,4 @@
-void testMethod(
+void sendMessage(
     String url,
     String channel,
     String username,
