@@ -9,6 +9,7 @@ node {
             checkout scm
         
             config = readYaml file: 'jenkins/deploy.yaml'
+            jenkinsHomePath = "${config.general.jenkins.path}"
             deployK8SYaml = "${config.deploy.k8s.yaml}"
             
             buildDockerfile = "${config.deploy.build.dockerfile}"
@@ -18,7 +19,7 @@ node {
             registryProject = "${config.registry.project}"
             registryService = "${config.registry.service}"
             
-            mattermost = load "./src/mattermost.groovy"
+            mattermost = load "${jenkinsHomePath}/src/mattermost.groovy"
             mattermostURL = "${config.notification.mettermost.url}"
             mattermostChannel = "${config.notification.mettermost.channel}"
             mattermostUsername = "${config.notification.mettermost.usrname}"
