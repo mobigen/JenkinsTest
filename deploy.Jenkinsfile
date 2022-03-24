@@ -1,6 +1,6 @@
 @Library('mobigen-jenkins-library') _
 
-CONFIG = readYaml(file: 'jenkins/deploy.yaml')
+CONFIG = null
 DOCKER_IMAGE = [
     'name': '',
     'tag': ''
@@ -15,6 +15,13 @@ pipeline {
     }
 
     stages {
+        stage('Initializing') {
+            steps {
+                script {
+                    CONFIG = readYaml(file: 'jenkins/deploy.yaml')
+                }
+            }
+        }
         stage('Build and push') {
             steps {
                 script {
